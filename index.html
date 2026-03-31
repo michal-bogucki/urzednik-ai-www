@@ -1,0 +1,955 @@
+<!DOCTYPE html>
+<html lang="pl" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>URZEDNIK.AI — Cyfrowa pamięć instytucji</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        citadel: {
+                            bg: '#0a0a0f',
+                            panel: '#0f0f1e',
+                            card: '#1a1a2e',
+                            navy: '#1e3a8a',
+                            blue: '#3b82f6',
+                            chrome: '#6b7280',
+                            text: '#e2e8f0',
+                            muted: '#94a3b8',
+                        }
+                    },
+                    fontFamily: {
+                        heading: ['"Archivo Black"', 'sans-serif'],
+                        body: ['"Space Grotesk"', 'sans-serif'],
+                        mono: ['"JetBrains Mono"', 'monospace'],
+                    },
+                    screens: {
+                        '3xl': '1920px',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Space Grotesk', sans-serif; background: #0a0a0f; color: #e2e8f0; overflow-x: hidden; opacity: 0; transition: opacity 0.3s ease; }
+        body.loaded { opacity: 1; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+
+        /* Cyber grid overlay */
+        .cyber-grid {
+            background-image:
+                linear-gradient(rgba(30,58,138,0.07) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(30,58,138,0.07) 1px, transparent 1px);
+            background-size: 60px 60px;
+        }
+
+        /* Circuit dot pattern */
+        .circuit-dots {
+            background-image: radial-gradient(rgba(30,58,138,0.15) 1px, transparent 1px);
+            background-size: 24px 24px;
+        }
+
+        /* Scanline animation (hero) */
+        @keyframes scanline {
+            0% { transform: translateY(-100%); }
+            100% { transform: translateY(100vh); }
+        }
+        .scanline::after {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 4px;
+            background: linear-gradient(180deg, transparent, rgba(30,58,138,0.08), transparent);
+            animation: scanline 8s linear infinite;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        /* Global scanline A — delikatne wzmocnienie */
+        @keyframes scan-down {
+            0% { top: -150px; }
+            100% { top: 100vh; }
+        }
+        .global-scanline {
+            position: fixed;
+            left: 0; right: 0;
+            height: 150px;
+            background: linear-gradient(180deg, transparent, rgba(30,58,138,0.24), transparent);
+            animation: scan-down 12s linear infinite;
+            pointer-events: none;
+            z-index: 9999;
+        }
+
+
+        /* Glitch border */
+        @keyframes glitch-border {
+            0%, 100% { clip-path: inset(0 0 0 0); }
+            5% { clip-path: inset(0 0 98% 0); }
+            10% { clip-path: inset(0 0 0 0); }
+            15% { clip-path: inset(80% 0 0 0); }
+            20% { clip-path: inset(0 0 0 0); }
+        }
+        .glitch-border {
+            position: relative;
+        }
+        .glitch-border::before, .glitch-border::after {
+            content: '';
+            position: absolute;
+            inset: -2px;
+            border: 2px solid #1e3a8a;
+            border-radius: inherit;
+            pointer-events: none;
+        }
+        .glitch-border::before {
+            animation: glitch-border 4s step-end infinite;
+            border-color: #3b82f6;
+        }
+        .glitch-border::after {
+            animation: glitch-border 4s step-end infinite reverse;
+            border-color: #1e3a8a;
+            animation-delay: 0.5s;
+        }
+
+        /* Spinning ring */
+        @keyframes spin-slow { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        @keyframes spin-reverse { 0% { transform: rotate(360deg); } 100% { transform: rotate(0deg); } }
+        .spin-slow { animation: spin-slow 20s linear infinite; }
+        .spin-reverse { animation: spin-reverse 15s linear infinite; }
+
+        /* Cosmos orbit animations */
+        @keyframes orbit1{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+        @keyframes orbit2{from{transform:rotate(0deg)}to{transform:rotate(-360deg)}}
+        @keyframes orbit3{from{transform:rotate(120deg)}to{transform:rotate(480deg)}}
+        @keyframes orbit4{from{transform:rotate(240deg)}to{transform:rotate(-120deg)}}
+        .o1{transform-origin:200px 200px;animation:orbit1 18s linear infinite}
+        .o2{transform-origin:200px 200px;animation:orbit2 28s linear infinite}
+        .o3{transform-origin:200px 200px;animation:orbit3 22s linear infinite}
+        .o4{transform-origin:200px 200px;animation:orbit4 35s linear infinite}
+        .cosmos-svg{filter:drop-shadow(0 0 60px rgba(30,58,138,.15)) drop-shadow(0 0 120px rgba(10,10,15,.6))}
+
+        /* Pulse dot */
+        @keyframes pulse-dot {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.4; transform: scale(0.8); }
+        }
+        .pulse-dot { animation: pulse-dot 2s ease-in-out infinite; }
+
+        /* Fade in on scroll */
+        .fade-in-up {
+            opacity: 0;
+            transform: translateY(40px);
+            transition: opacity 0.8s cubic-bezier(0.16,1,0.3,1), transform 0.8s cubic-bezier(0.16,1,0.3,1);
+        }
+        .fade-in-up.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Float card effect */
+        .float-card {
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.4), 0 0 0 1px rgba(30,58,138,0.15);
+            transition: transform 0.4s cubic-bezier(0.16,1,0.3,1), box-shadow 0.4s ease;
+        }
+        .float-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5), 0 0 0 1px rgba(59,130,246,0.3);
+        }
+
+        /* Table styling */
+        .compare-table th, .compare-table td { padding: 16px 20px; text-align: left; border-bottom: 1px solid rgba(30,58,138,0.15); }
+        .compare-table tr { transition: background 0.3s ease; }
+        .compare-table tbody tr:hover { background: rgba(30,58,138,0.08); }
+
+        /* Details/summary */
+        details summary { cursor: pointer; list-style: none; }
+        details summary::-webkit-details-marker { display: none; }
+        details summary::after { content: '+'; margin-left: auto; font-family: 'JetBrains Mono', monospace; color: #3b82f6; transition: transform 0.3s; }
+        details[open] summary::after { content: '−'; }
+
+        /* Stroke text */
+        .text-stroke {
+            -webkit-text-stroke: 2px #3b82f6;
+            color: transparent;
+        }
+        @media (min-width: 768px) {
+            .text-stroke { -webkit-text-stroke: 3px #3b82f6; }
+        }
+
+        /* Team image grayscale */
+        .team-img { filter: grayscale(100%); transition: filter 0.5s ease; }
+        .team-card:hover .team-img { filter: grayscale(0%); }
+        .team-badge { opacity: 0; transition: opacity 0.3s ease; }
+        .team-card:hover .team-badge { opacity: 1; }
+
+        /* Hamburger */
+        .hamburger span { display: block; width: 24px; height: 2px; background: #e2e8f0; transition: all 0.3s; }
+        .hamburger.active span:nth-child(1) { transform: rotate(45deg) translate(5px, 5px); }
+        .hamburger.active span:nth-child(2) { opacity: 0; }
+        .hamburger.active span:nth-child(3) { transform: rotate(-45deg) translate(5px, -5px); }
+
+        /* Scroll offset for fixed navbar */
+        [id] {
+            scroll-margin-top: 0;
+        }
+        #kontakt {
+            scroll-margin-top: 130px;
+        }
+
+        /* Custom scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #0a0a0f; }
+        ::-webkit-scrollbar-thumb { background: #1e3a8a; border-radius: 3px; }
+
+        /* Hero overlay — responsive gradient */
+        .hero-overlay {
+            background: linear-gradient(to right, rgba(10,10,15,0.70), rgba(10,10,15,0.25), transparent);
+        }
+        @media (min-width: 768px) {
+            .hero-overlay {
+                background: linear-gradient(to right, rgba(10,10,15,0.80), rgba(10,10,15,0.35), transparent);
+            }
+        }
+        @media (min-width: 1280px) {
+            .hero-overlay {
+                background: linear-gradient(to right, rgba(10,10,15,0.75), rgba(10,10,15,0.30), transparent);
+            }
+        }
+
+        /* Smooth CTA hover */
+        .cta-primary {
+            background: #1e3a8a;
+            transition: all 0.3s cubic-bezier(0.16,1,0.3,1);
+            position: relative;
+            overflow: hidden;
+        }
+        .cta-primary::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, #3b82f6, #1e3a8a);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        .cta-primary:hover::before { opacity: 1; }
+        .cta-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(30,58,138,0.4); }
+        .cta-primary span { position: relative; z-index: 1; }
+
+        /* Hero image mask — tajemniczość */
+        .hero-img-mask {
+            -webkit-mask-image: radial-gradient(ellipse 85% 75% at 65% 50%, black 15%, transparent 75%);
+            mask-image: radial-gradient(ellipse 85% 75% at 65% 50%, black 15%, transparent 75%);
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+<!-- GLOBAL SCANLINE -->
+<div class="global-scanline"></div>
+
+<!-- CONTACT BAR -->
+<div class="bg-citadel-panel/80 border-b border-citadel-navy/20 py-1.5 relative z-50">
+    <div class="max-w-screen-2xl 3xl:max-w-[1800px] mx-auto px-4 md:px-8 xl:px-12 flex justify-center md:justify-end">
+        <p class="font-mono text-[11px] tracking-wider text-citadel-chrome">
+            <span class="inline-flex items-center gap-1">📞 +48 607 376 301</span>
+            <span class="mx-3 text-citadel-navy">·</span>
+            <span class="inline-flex items-center gap-1">✉ biuro@urzednik.ai</span>
+        </p>
+    </div>
+</div>
+
+<!-- NAV -->
+<nav id="navbar" class="fixed top-0 left-0 right-0 z-40 transition-all duration-500" style="top: 33px;">
+    <div class="max-w-screen-2xl 3xl:max-w-[1800px] mx-auto px-4 md:px-8 xl:px-12 py-4 flex items-center justify-between">
+        <a href="#" class="flex items-center gap-2 group">
+            <span class="material-symbols-outlined text-citadel-blue text-3xl group-hover:text-white transition-colors">security</span>
+            <span class="font-heading text-lg tracking-wider text-white">URZEDNIK.AI</span>
+        </a>
+        <div class="hidden md:flex items-center gap-8">
+            <a href="#system" class="font-mono text-xs tracking-widest text-citadel-chrome hover:text-citadel-blue transition-colors uppercase">System</a>
+            <a href="#zastosowania" class="font-mono text-xs tracking-widest text-citadel-chrome hover:text-citadel-blue transition-colors uppercase">Zastosowania</a>
+            <a href="#dlaczego-onpremise" class="font-mono text-xs tracking-widest text-citadel-chrome hover:text-citadel-blue transition-colors uppercase">Dlaczego on-premise</a>
+            <a href="#bezpieczenstwo" class="font-mono text-xs tracking-widest text-citadel-chrome hover:text-citadel-blue transition-colors uppercase">Bezpieczeństwo</a>
+            <a href="#o-nas" class="font-mono text-xs tracking-widest text-citadel-chrome hover:text-citadel-blue transition-colors uppercase">O nas</a>
+            <a href="#kontakt" class="font-mono text-xs tracking-widest text-citadel-chrome hover:text-citadel-blue transition-colors uppercase">Kontakt</a>
+            <a href="#kontakt" class="border border-citadel-navy text-white px-5 py-2 font-mono text-xs tracking-widest hover:bg-citadel-navy transition-all rounded">UMÓW PREZENTACJĘ</a>
+        </div>
+        <button id="hamburger" class="hamburger md:hidden flex flex-col gap-1.5 p-2" aria-label="Menu">
+            <span></span><span></span><span></span>
+        </button>
+    </div>
+    <!-- Mobile menu -->
+    <div id="mobile-menu" class="md:hidden hidden bg-citadel-bg/95 backdrop-blur-xl border-b border-citadel-navy/20">
+        <div class="px-4 py-6 flex flex-col gap-4">
+            <a href="#system" class="font-mono text-sm tracking-widest text-citadel-chrome hover:text-citadel-blue transition-colors">SYSTEM</a>
+            <a href="#zastosowania" class="font-mono text-sm tracking-widest text-citadel-chrome hover:text-citadel-blue transition-colors">ZASTOSOWANIA</a>
+            <a href="#dlaczego-onpremise" class="font-mono text-sm tracking-widest text-citadel-chrome hover:text-citadel-blue transition-colors">DLACZEGO ON-PREMISE</a>
+            <a href="#bezpieczenstwo" class="font-mono text-sm tracking-widest text-citadel-chrome hover:text-citadel-blue transition-colors">BEZPIECZEŃSTWO</a>
+            <a href="#o-nas" class="font-mono text-sm tracking-widest text-citadel-chrome hover:text-citadel-blue transition-colors">O NAS</a>
+            <a href="#kontakt" class="font-mono text-sm tracking-widest text-citadel-chrome hover:text-citadel-blue transition-colors">KONTAKT</a>
+            <a href="#kontakt" class="border border-citadel-navy text-white px-5 py-3 font-mono text-xs tracking-widest hover:bg-citadel-navy transition-all rounded text-center mt-2">UMÓW PREZENTACJĘ</a>
+        </div>
+    </div>
+</nav>
+
+<!-- HERO -->
+<section class="relative min-h-screen flex items-center overflow-hidden cyber-grid scanline pt-24 pb-36 md:pt-0 md:pb-0">
+    <!-- Hero image -->
+    <div class="absolute inset-0 flex items-center pointer-events-none md:justify-end">
+        <div class="hero-img-mask w-full md:w-[38%] h-full md:mr-[6%]">
+            <img src="photo1.jpg"
+                 alt="" class="w-full h-full object-cover opacity-[0.70] md:opacity-[0.65] xl:opacity-[0.70] mix-blend-screen blur-[1.5px]">
+        </div>
+    </div>
+    <!-- Warstwa na zdjęcie — zmień opacity-[0.30] żeby sterować zaciemnieniem -->
+    <div class="absolute inset-0 bg-citadel-bg opacity-[0.80] pointer-events-none"></div>
+
+    <div class="relative z-10 max-w-screen-2xl 3xl:max-w-[1800px] mx-auto px-4 md:px-8 xl:px-12 w-full">
+        <div class="max-w-3xl">
+            <!-- Label -->
+            <div class="flex items-center gap-3 mb-8 fade-in-up">
+                <span class="w-2 h-2 rounded-full bg-citadel-blue pulse-dot"></span>
+                <span class="font-mono text-xs tracking-[0.3em] text-citadel-chrome uppercase">System AI dla instytucji</span>
+            </div>
+            <!-- Heading -->
+            <h1 class="font-heading uppercase leading-[0.9] mb-6 fade-in-up">
+                <span class="text-4xl md:text-7xl lg:text-8xl text-white">Cyfrowa </span>
+                <span class="text-4xl md:text-7xl lg:text-8xl text-stroke">pamięć</span>
+                <br>
+                <span class="text-4xl md:text-7xl lg:text-8xl text-citadel-blue">organizacji.</span>
+            </h1>
+            <!-- Sub -->
+            <p class="font-heading text-lg md:text-xl text-citadel-muted uppercase tracking-wider mb-4 fade-in-up">System AI, który zna i rozumie dokumenty, procedury oraz wiedzę Twojej organizacji.</p>
+            <p class="text-citadel-muted text-base md:text-lg max-w-xl mb-10 fade-in-up leading-relaxed">Działa lokalnie — bez wysyłania danych do chmury.</p>
+            <!-- CTA -->
+            <div class="fade-in-up">
+                <a href="#kontakt" class="cta-primary inline-flex items-center gap-3 px-8 py-4 rounded text-white font-heading text-sm tracking-widest uppercase">
+                    <span class="flex items-center gap-3"><span class="material-symbols-outlined text-xl">bolt</span> Umów prezentację</span>
+                </a>
+                <p class="font-mono text-[10px] tracking-[0.3em] text-citadel-chrome mt-4">ON-PREMISE // BEZPIECZNE // POLSKIE</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stats strip -->
+    <div class="absolute bottom-0 left-0 right-0 border-t border-citadel-navy/30 bg-citadel-bg/80 backdrop-blur-sm z-10">
+        <div class="max-w-screen-2xl 3xl:max-w-[1800px] mx-auto px-4 md:px-8 xl:px-12 py-5 grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div class="text-center fade-in-up">
+                <p class="font-heading text-lg md:text-2xl text-white">48h</p>
+                <p class="font-mono text-[10px] tracking-widest text-citadel-chrome mt-1">WDROŻENIE</p>
+            </div>
+            <div class="text-center fade-in-up">
+                <p class="font-heading text-lg md:text-2xl text-white">0%</p>
+                <p class="font-mono text-[10px] tracking-widest text-citadel-chrome mt-1">DANE W CHMURZE</p>
+            </div>
+            <div class="text-center fade-in-up">
+                <p class="font-heading text-lg md:text-2xl text-white">100%</p>
+                <p class="font-mono text-[10px] tracking-widest text-citadel-chrome mt-1">ON-PREMISE</p>
+            </div>
+            <div class="text-center fade-in-up">
+                <p class="font-heading text-lg md:text-2xl text-citadel-blue">P1–P4</p>
+                <p class="font-mono text-[10px] tracking-widest text-citadel-chrome mt-1">WIARYGODNOŚĆ</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- RYZYKA AI -->
+<section id="system" class="relative py-24 md:py-32 circuit-dots overflow-hidden">
+    <div class="max-w-screen-2xl 3xl:max-w-[1800px] mx-auto px-4 md:px-8 xl:px-12">
+        <div class="max-w-2xl mb-16 fade-in-up">
+            <span class="font-mono text-[10px] tracking-[0.4em] text-citadel-blue bg-citadel-navy/20 px-3 py-1.5 rounded inline-block mb-4">SYSTEM</span>
+            <h2 class="font-heading text-3xl md:text-5xl uppercase text-white">System</h2>
+        </div>
+        <div class="grid md:grid-cols-12 gap-6 md:gap-0 items-start">
+            <!-- Left card -->
+            <div class="md:col-span-7 bg-citadel-panel/80 backdrop-blur-xl rounded-lg p-8 md:p-12 float-card relative z-10 fade-in-up">
+                <span class="font-mono text-[10px] tracking-[0.4em] text-citadel-blue bg-citadel-navy/20 px-3 py-1.5 rounded inline-block mb-6">RYZYKA_AI</span>
+                <h2 class="font-heading text-2xl md:text-3xl uppercase leading-tight text-white mb-6">Instytucje coraz częściej korzystają z AI, aby zwiększyć wydajność działania.</h2>
+                <p class="text-citadel-muted mb-6 leading-relaxed">Jednocześnie pojawiają się konkretne ryzyka:</p>
+                <div class="space-y-4 mb-8">
+                    <div class="flex items-start gap-3">
+                        <span class="w-1.5 h-1.5 rounded-full bg-red-500 mt-2 shrink-0"></span>
+                        <p class="text-citadel-text">bezpieczeństwo danych i RODO <span class="text-citadel-chrome">(systemy AI w chmurze)</span></p>
+                    </div>
+                    <div class="flex items-start gap-3">
+                        <span class="w-1.5 h-1.5 rounded-full bg-red-500 mt-2 shrink-0"></span>
+                        <p class="text-citadel-text">prawa autorskie do tworzonych materiałów</p>
+                    </div>
+                    <div class="flex items-start gap-3">
+                        <span class="w-1.5 h-1.5 rounded-full bg-red-500 mt-2 shrink-0"></span>
+                        <p class="text-citadel-text">wiarygodność odpowiedzi <span class="text-citadel-chrome">(halucynacje)</span></p>
+                    </div>
+                </div>
+                <p class="text-citadel-muted mb-10 leading-relaxed">Urzednik.ai został zaprojektowany właśnie po to, aby instytucje mogły korzystać z AI bez tych ryzyk.</p>
+                <div class="grid sm:grid-cols-2 gap-6 border-t border-citadel-navy/20 pt-8">
+                    <div class="flex items-start gap-3">
+                        <span class="material-symbols-outlined text-citadel-blue text-2xl mt-0.5">dns</span>
+                        <div>
+                            <p class="font-heading text-sm uppercase text-white mb-1">Działa lokalnie (on-premise)</p>
+                            <p class="text-citadel-chrome text-sm">Dane nie opuszczają instytucji</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start gap-3">
+                        <span class="material-symbols-outlined text-citadel-blue text-2xl mt-0.5">verified</span>
+                        <div>
+                            <p class="font-heading text-sm uppercase text-white mb-1">Bez halucynacji</p>
+                            <p class="text-citadel-chrome text-sm">System oceny wiarygodności P1–P4</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Right overlapping card -->
+            <div class="md:col-span-5 md:-ml-8 md:mt-16 bg-gradient-to-br from-citadel-navy to-citadel-navy/80 backdrop-blur-xl rounded-lg p-8 md:p-10 float-card relative z-20 fade-in-up border border-citadel-blue/10">
+                <span class="material-symbols-outlined text-citadel-blue text-5xl mb-6">lock</span>
+                <h3 class="font-heading text-xl md:text-2xl uppercase text-white mb-4">Bezpieczne AI</h3>
+                <p class="text-blue-200/70 leading-relaxed mb-8">Od dziś możesz bezpiecznie korzystać z AI w pracy — bez wysyłania dokumentów do chmury, bez troski o RODO i prawa autorskie.</p>
+                <div class="flex flex-wrap gap-3 border-t border-white/10 pt-6">
+                    <span class="font-mono text-[10px] tracking-widest text-blue-300/60 bg-white/5 px-3 py-1.5 rounded">ON-PREMISE</span>
+                    <span class="font-mono text-[10px] tracking-widest text-blue-300/60 bg-white/5 px-3 py-1.5 rounded">RODO</span>
+                    <span class="font-mono text-[10px] tracking-widest text-blue-300/60 bg-white/5 px-3 py-1.5 rounded">PRAWA AUTORSKIE</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ZASTOSOWANIA -->
+<section id="zastosowania" class="relative py-24 md:py-32 circuit-dots">
+    <div class="max-w-screen-2xl 3xl:max-w-[1800px] mx-auto px-4 md:px-8 xl:px-12">
+        <div class="max-w-2xl mb-16 fade-in-up">
+            <span class="font-mono text-[10px] tracking-[0.4em] text-citadel-blue bg-citadel-navy/20 px-3 py-1.5 rounded inline-block mb-4">ZASTOSOWANIA</span>
+            <h2 class="font-heading text-3xl md:text-5xl uppercase text-white mb-6">Zastosowania</h2>
+            <p class="text-citadel-muted leading-relaxed">Urzednik.ai wspiera codzienną pracę z dokumentami i wiedzą w instytucji. Każda odpowiedź systemu wskazuje źródło informacji w dokumentach instytucji (system P1–P4).</p>
+        </div>
+        <div class="grid md:grid-cols-2 xl:grid-cols-4 gap-5 items-start">
+            <!-- Card 1 -->
+            <div class="float-card bg-citadel-panel/60 rounded-lg p-6 fade-in-up">
+                <span class="material-symbols-outlined text-citadel-blue text-2xl mb-3 block">description</span>
+                <h3 class="font-heading text-sm uppercase text-white tracking-wide mb-3">Umowy, OPZ i dokumentacja</h3>
+                <ul class="space-y-2 text-sm text-citadel-chrome">
+                    <li class="flex items-start gap-2"><span class="text-citadel-blue mt-1">›</span> przygotowanie projektu umowy lub OPZ</li>
+                    <li class="flex items-start gap-2"><span class="text-citadel-blue mt-1">›</span> tworzenie opisów przedmiotu zamówienia</li>
+                    <li class="flex items-start gap-2"><span class="text-citadel-blue mt-1">›</span> dokumentacja postępowań</li>
+                    <li class="flex items-start gap-2"><span class="text-citadel-blue mt-1">›</span> analiza i poprawianie umów</li>
+                </ul>
+            </div>
+            <!-- Card 2 -->
+            <div class="float-card bg-citadel-panel/60 rounded-lg p-6 fade-in-up">
+                <span class="material-symbols-outlined text-citadel-blue text-2xl mb-3 block">gavel</span>
+                <h3 class="font-heading text-sm uppercase text-white tracking-wide mb-3">Pisma i decyzje</h3>
+                <ul class="space-y-2 text-sm text-citadel-chrome">
+                    <li class="flex items-start gap-2"><span class="text-citadel-blue mt-1">›</span> analiza wpływających pism i wniosków</li>
+                    <li class="flex items-start gap-2"><span class="text-citadel-blue mt-1">›</span> projekty odpowiedzi lub decyzji</li>
+                    <li class="flex items-start gap-2"><span class="text-citadel-blue mt-1">›</span> redakcja dokumentów formalnych</li>
+                    <li class="flex items-start gap-2"><span class="text-citadel-blue mt-1">›</span> wskazanie podstaw prawnych</li>
+                </ul>
+            </div>
+            <!-- Card 3 -->
+            <div class="float-card bg-citadel-panel/60 rounded-lg p-6 fade-in-up">
+                <span class="material-symbols-outlined text-citadel-blue text-2xl mb-3 block">search</span>
+                <h3 class="font-heading text-sm uppercase text-white tracking-wide mb-3">Wyszukiwanie wiedzy</h3>
+                <ul class="space-y-2 text-sm text-citadel-chrome">
+                    <li class="flex items-start gap-2"><span class="text-citadel-blue mt-1">›</span> informacje w regulaminach i procedurach</li>
+                    <li class="flex items-start gap-2"><span class="text-citadel-blue mt-1">›</span> wyszukiwanie w uchwałach</li>
+                    <li class="flex items-start gap-2"><span class="text-citadel-blue mt-1">›</span> informacje w dużych dokumentach</li>
+                    <li class="flex items-start gap-2"><span class="text-citadel-blue mt-1">›</span> podobne sprawy z przeszłości</li>
+                </ul>
+            </div>
+            <!-- Card 4 -->
+            <div class="float-card bg-citadel-panel/60 rounded-lg p-6 fade-in-up">
+                <span class="material-symbols-outlined text-citadel-blue text-2xl mb-3 block">mail</span>
+                <h3 class="font-heading text-sm uppercase text-white tracking-wide mb-3">Komunikacja</h3>
+                <ul class="space-y-2 text-sm text-citadel-chrome">
+                    <li class="flex items-start gap-2"><span class="text-citadel-blue mt-1">›</span> pisanie maili i odpowiedzi</li>
+                    <li class="flex items-start gap-2"><span class="text-citadel-blue mt-1">›</span> komunikaty i ogłoszenia</li>
+                    <li class="flex items-start gap-2"><span class="text-citadel-blue mt-1">›</span> odpowiedzi na zapytania</li>
+                    <li class="flex items-start gap-2"><span class="text-citadel-blue mt-1">›</span> redakcja tekstów formalnych</li>
+                </ul>
+            </div>
+            <!-- Card 5 -->
+            <div class="float-card bg-citadel-panel/60 rounded-lg p-6 fade-in-up">
+                <span class="material-symbols-outlined text-citadel-blue text-2xl mb-3 block">analytics</span>
+                <h3 class="font-heading text-sm uppercase text-white tracking-wide mb-3">Analizy i raporty</h3>
+                <ul class="space-y-2 text-sm text-citadel-chrome">
+                    <li class="flex items-start gap-2"><span class="text-citadel-blue mt-1">›</span> plany działania i analizy</li>
+                    <li class="flex items-start gap-2"><span class="text-citadel-blue mt-1">›</span> harmonogramy i plany pracy</li>
+                    <li class="flex items-start gap-2"><span class="text-citadel-blue mt-1">›</span> podsumowanie dokumentów</li>
+                    <li class="flex items-start gap-2"><span class="text-citadel-blue mt-1">›</span> materiały dla kierownictwa</li>
+                </ul>
+            </div>
+            <!-- Card 6 -->
+            <div class="float-card bg-citadel-panel/60 rounded-lg p-6 fade-in-up">
+                <span class="material-symbols-outlined text-citadel-blue text-2xl mb-3 block">group</span>
+                <h3 class="font-heading text-sm uppercase text-white tracking-wide mb-3">HR i organizacja pracy</h3>
+                <ul class="space-y-2 text-sm text-citadel-chrome">
+                    <li class="flex items-start gap-2"><span class="text-citadel-blue mt-1">›</span> dokumenty kadrowe</li>
+                    <li class="flex items-start gap-2"><span class="text-citadel-blue mt-1">›</span> opisy stanowisk i obowiązków</li>
+                    <li class="flex items-start gap-2"><span class="text-citadel-blue mt-1">›</span> regulaminy i procedury</li>
+                    <li class="flex items-start gap-2"><span class="text-citadel-blue mt-1">›</span> materiały szkoleniowe</li>
+                </ul>
+            </div>
+            <!-- Card 7 -->
+            <div class="float-card bg-citadel-panel/60 rounded-lg p-6 fade-in-up">
+                <span class="material-symbols-outlined text-citadel-blue text-2xl mb-3 block">factory</span>
+                <h3 class="font-heading text-sm uppercase text-white tracking-wide mb-3">Projekty i operacje</h3>
+                <ul class="space-y-2 text-sm text-citadel-chrome">
+                    <li class="flex items-start gap-2"><span class="text-citadel-blue mt-1">›</span> dokumentacja projektów</li>
+                    <li class="flex items-start gap-2"><span class="text-citadel-blue mt-1">›</span> plany projektów</li>
+                    <li class="flex items-start gap-2"><span class="text-citadel-blue mt-1">›</span> instrukcje i procedury</li>
+                    <li class="flex items-start gap-2"><span class="text-citadel-blue mt-1">›</span> porządkowanie wiedzy</li>
+                </ul>
+            </div>
+            <!-- Card 8 -->
+            <div class="float-card bg-citadel-panel/60 rounded-lg p-6 fade-in-up">
+                <span class="material-symbols-outlined text-citadel-blue text-2xl mb-3 block">build</span>
+                <h3 class="font-heading text-sm uppercase text-white tracking-wide mb-3">Wsparcie i rozwiązywanie problemów</h3>
+                <ul class="space-y-2 text-sm text-citadel-chrome">
+                    <li class="flex items-start gap-2"><span class="text-citadel-blue mt-1">›</span> szybkie rozwiązanie problemu</li>
+                    <li class="flex items-start gap-2"><span class="text-citadel-blue mt-1">›</span> instrukcje i procedury</li>
+                    <li class="flex items-start gap-2"><span class="text-citadel-blue mt-1">›</span> odpowiedzi na pytania pracowników</li>
+                    <li class="flex items-start gap-2"><span class="text-citadel-blue mt-1">›</span> baza wiedzy instytucji</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- DLACZEGO ON-PREMISE -->
+<section id="dlaczego-onpremise" class="relative py-24 md:py-32">
+    <div class="max-w-screen-2xl 3xl:max-w-[1800px] mx-auto px-4 md:px-8 xl:px-12">
+        <div class="text-center mb-16 fade-in-up">
+            <span class="font-mono text-[10px] tracking-[0.4em] text-citadel-blue bg-citadel-navy/20 px-3 py-1.5 rounded inline-block mb-4">DLACZEGO_ONPREMISE</span>
+            <h2 class="font-heading text-3xl md:text-5xl uppercase text-white">Dlaczego on-premise</h2>
+        </div>
+        <div class="overflow-x-auto fade-in-up rounded-lg border border-citadel-navy/20">
+            <table class="compare-table w-full min-w-[700px]">
+                <thead>
+                    <tr class="bg-citadel-panel">
+                        <th class="font-mono text-xs tracking-widest text-citadel-chrome uppercase w-1/4">Kryterium</th>
+                        <th class="font-mono text-xs tracking-widest text-citadel-chrome uppercase w-[37.5%]">Popularne AI<br><span class="text-[10px] text-citadel-chrome/50 normal-case">(ChatGPT, Gemini, Claude)</span></th>
+                        <th class="font-mono text-xs tracking-widest text-citadel-blue uppercase w-[37.5%] bg-citadel-navy/20">Urzednik.ai</th>
+                    </tr>
+                </thead>
+                <tbody class="text-sm">
+                    <tr>
+                        <td class="font-medium text-citadel-text">Lokalizacja danych</td>
+                        <td class="text-citadel-chrome">chmura (on-cloud) — dane poza kontrolą instytucji</td>
+                        <td class="bg-citadel-navy/10 text-white font-semibold">LOKALNIE (ON-PREMISE) — bezpieczne przetwarzanie wewnątrz instytucji</td>
+                    </tr>
+                    <tr>
+                        <td class="font-medium text-citadel-text">Wiedza o instytucji</td>
+                        <td class="text-citadel-chrome">brak wiedzy o instytucji</td>
+                        <td class="bg-citadel-navy/10 text-white font-semibold">PEŁNA WIEDZA O DOKUMENTACH I PROCEDURACH</td>
+                    </tr>
+                    <tr>
+                        <td class="font-medium text-citadel-text">Wiarygodność odpowiedzi</td>
+                        <td class="text-citadel-chrome">podatność na halucynacje</td>
+                        <td class="bg-citadel-navy/10 text-white font-semibold">AUTORSKI SYSTEM OCENY WIARYGODNOŚCI P1–P4</td>
+                    </tr>
+                    <tr>
+                        <td class="font-medium text-citadel-text">Historia zmian</td>
+                        <td class="text-citadel-chrome">brak historii zmian dokumentów</td>
+                        <td class="bg-citadel-navy/10 text-white font-semibold">PEŁNA HISTORIA WERSJI DOKUMENTÓW</td>
+                    </tr>
+                    <tr>
+                        <td class="font-medium text-citadel-text">Kontrola dokumentu</td>
+                        <td class="text-citadel-chrome">brak kontroli nad zmianami</td>
+                        <td class="bg-citadel-navy/10 text-white font-semibold">PRACA NAD DOKUMENTEM JAK W EDYTORZE</td>
+                    </tr>
+                    <tr>
+                        <td class="font-medium text-citadel-text">Prawa autorskie</td>
+                        <td class="text-citadel-chrome">niepewność praw do treści AI</td>
+                        <td class="bg-citadel-navy/10 text-white font-semibold">PEŁNA WŁASNOŚĆ DOKUMENTÓW I MATERIAŁÓW</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</section>
+
+<!-- BEZPIECZEŃSTWO -->
+<section id="bezpieczenstwo" class="relative py-24 md:py-32 overflow-hidden">
+    <div class="max-w-screen-2xl 3xl:max-w-[1800px] mx-auto px-4 md:px-8 xl:px-12">
+        <div class="text-center mb-16 fade-in-up">
+            <span class="font-mono text-[10px] tracking-[0.4em] text-citadel-blue bg-citadel-navy/20 px-3 py-1.5 rounded inline-block mb-4">ZERO_COMPROMISE</span>
+            <h2 class="font-heading text-3xl md:text-5xl uppercase text-white mb-4">Bezpieczeństwo i kontrola danych</h2>
+            <p class="text-citadel-muted max-w-2xl mx-auto leading-relaxed">Urzednik.ai został zaprojektowany do pracy z dokumentami w organizacjach, w których bezpieczeństwo danych ma kluczowe znaczenie.</p>
+        </div>
+        <div class="grid md:grid-cols-2 gap-12 md:gap-16 items-center">
+            <!-- Left: features -->
+            <div class="space-y-8 fade-in-up">
+                <div class="flex gap-5 group">
+                    <span class="font-mono text-xs text-citadel-navy shrink-0 mt-1">01</span>
+                    <div>
+                        <h4 class="font-heading text-sm uppercase text-white mb-2 flex items-center gap-2">🔒 Dane nie opuszczają organizacji</h4>
+                        <p class="text-citadel-chrome text-sm leading-relaxed">System działa lokalnie w infrastrukturze instytucji (on-premise). Dokumenty i informacje nie są wysyłane do zewnętrznych usług w chmurze.</p>
+                    </div>
+                </div>
+                <div class="flex gap-5 group">
+                    <span class="font-mono text-xs text-citadel-navy shrink-0 mt-1">02</span>
+                    <div>
+                        <h4 class="font-heading text-sm uppercase text-white mb-2 flex items-center gap-2">🧠 Wiedza pozostaje w instytucji</h4>
+                        <p class="text-citadel-chrome text-sm leading-relaxed">System uczy się dokumentów, procedur i wiedzy organizacji. Ta wiedza pozostaje wewnątrz instytucji. Urzednik.ai pozwala zachować wiedzę nawet gdy doświadczeni pracownicy odchodzą.</p>
+                    </div>
+                </div>
+                <div class="flex gap-5 group">
+                    <span class="font-mono text-xs text-citadel-navy shrink-0 mt-1">03</span>
+                    <div>
+                        <h4 class="font-heading text-sm uppercase text-white mb-2 flex items-center gap-2">⚖️ Jasne prawa do tworzonych materiałów</h4>
+                        <p class="text-citadel-chrome text-sm leading-relaxed">Dokumenty tworzone przy pomocy systemu należą do organizacji. Nie ma niejasności związanych z prawami do treści.</p>
+                    </div>
+                </div>
+                <div class="flex gap-5 group">
+                    <span class="font-mono text-xs text-citadel-navy shrink-0 mt-1">04</span>
+                    <div>
+                        <h4 class="font-heading text-sm uppercase text-white mb-2 flex items-center gap-2">👥 Kontrola dostępu</h4>
+                        <p class="text-citadel-chrome text-sm leading-relaxed">Możliwe jest definiowanie poziomów dostępu dla użytkowników i kontrola tego, kto może korzystać z poszczególnych zasobów.</p>
+                    </div>
+                </div>
+                <div class="flex gap-5 group">
+                    <span class="font-mono text-xs text-citadel-navy shrink-0 mt-1">05</span>
+                    <div>
+                        <h4 class="font-heading text-sm uppercase text-white mb-2 flex items-center gap-2">🧾 Historia wersji i zmian</h4>
+                        <p class="text-citadel-chrome text-sm leading-relaxed">System umożliwia pracę nad dokumentami z historią wersji i zmian.</p>
+                    </div>
+                </div>
+            </div>
+            <!-- Right: cosmos orbits -->
+            <div class="flex items-center justify-center fade-in-up">
+                <div class="relative w-80 h-80 md:w-[400px] md:h-[400px]">
+                    <svg class="cosmos-svg w-full h-full" viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg">
+                        <defs>
+                            <radialGradient id="coreG" cx="50%" cy="50%" r="50%">
+                                <stop offset="0%" stop-color="#1a1a2e"/>
+                                <stop offset="70%" stop-color="#0f0f1e"/>
+                                <stop offset="100%" stop-color="#0a0a0f"/>
+                            </radialGradient>
+                            <filter id="blur4"><feGaussianBlur stdDeviation="4"/></filter>
+                        </defs>
+
+                        <!-- background disc -->
+                        <circle cx="200" cy="200" r="185" fill="rgba(15,15,30,.35)" opacity=".6"/>
+
+                        <!-- ORBIT RINGS (static) -->
+                        <circle cx="200" cy="200" r="140" fill="none" stroke="rgba(30,58,138,0.08)" stroke-width="1" stroke-dasharray="4 8"/>
+                        <circle cx="200" cy="200" r="105" fill="none" stroke="rgba(30,58,138,0.12)" stroke-width="0.8" stroke-dasharray="2 6"/>
+                        <circle cx="200" cy="200" r="80" fill="none" stroke="rgba(59,130,246,0.15)" stroke-width="0.8"/>
+
+                        <!-- ORBIT 1 — outer — 4 documents (losowa kolejność wielkości) -->
+                        <g class="o1">
+                            <!-- OPZ — mały, daleko (r≈155) -->
+                            <g transform="translate(200,45)">
+                                <rect x="-12" y="-8" width="24" height="16" rx="1.5" fill="rgba(15,15,30,.9)" stroke="#3b82f6" stroke-width=".8" opacity=".7"/>
+                                <line x1="-7" y1="-3" x2="7" y2="-3" stroke="#3b82f6" stroke-width=".5" opacity=".6"/>
+                                <line x1="-7" y1="1" x2="7" y2="1" stroke="#3b82f6" stroke-width=".5" opacity=".4"/>
+                                <text x="0" y="-11" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="6" fill="#3b82f6" opacity=".5">OPZ</text>
+                            </g>
+                            <!-- PISMO — największy, blisko (r≈130) -->
+                            <g transform="translate(330,200)">
+                                <rect x="-22" y="-16" width="44" height="32" rx="3" fill="rgba(15,15,30,.9)" stroke="#3b82f6" stroke-width="1.3" opacity=".9"/>
+                                <line x1="-16" y1="-9" x2="16" y2="-9" stroke="#3b82f6" stroke-width=".8" opacity=".6"/>
+                                <line x1="-16" y1="-3" x2="16" y2="-3" stroke="#3b82f6" stroke-width=".8" opacity=".4"/>
+                                <line x1="-16" y1="3" x2="10" y2="3" stroke="#3b82f6" stroke-width=".8" opacity=".4"/>
+                                <line x1="-16" y1="9" x2="6" y2="9" stroke="#3b82f6" stroke-width=".8" opacity=".3"/>
+                                <text x="0" y="-20" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="7" fill="#3b82f6" opacity=".6">PISMO</text>
+                            </g>
+                            <!-- UMOWA — średni, daleko (r≈145) -->
+                            <g transform="translate(200,345)">
+                                <rect x="-16" y="-11" width="32" height="22" rx="2" fill="rgba(15,15,30,.9)" stroke="#3b82f6" stroke-width="1" opacity=".8"/>
+                                <line x1="-10" y1="-5" x2="10" y2="-5" stroke="#3b82f6" stroke-width=".6" opacity=".6"/>
+                                <line x1="-10" y1="-1" x2="10" y2="-1" stroke="#3b82f6" stroke-width=".6" opacity=".4"/>
+                                <line x1="-10" y1="3" x2="6" y2="3" stroke="#3b82f6" stroke-width=".6" opacity=".4"/>
+                                <text x="0" y="-14" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="7" fill="#3b82f6" opacity=".6">UMOWA</text>
+                            </g>
+                            <!-- RAPORT — duży, blisko (r≈160) -->
+                            <g transform="translate(40,200)">
+                                <rect x="-20" y="-14" width="40" height="28" rx="2.5" fill="rgba(15,15,30,.9)" stroke="#3b82f6" stroke-width="1.2" opacity=".85"/>
+                                <line x1="-14" y1="-7" x2="14" y2="-7" stroke="#3b82f6" stroke-width=".7" opacity=".6"/>
+                                <line x1="-14" y1="-2" x2="14" y2="-2" stroke="#3b82f6" stroke-width=".7" opacity=".4"/>
+                                <line x1="-14" y1="3" x2="8" y2="3" stroke="#3b82f6" stroke-width=".7" opacity=".4"/>
+                                <text x="0" y="-18" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="7" fill="#3b82f6" opacity=".6">RAPORT</text>
+                            </g>
+                        </g>
+
+                        <!-- ORBIT 2 — mid — 3 data nodes (losowe wielkości) -->
+                        <g class="o2">
+                            <g transform="translate(200,88)">
+                                <circle r="6" fill="rgba(15,15,30,.95)" stroke="#3b82f6" stroke-width="1" opacity=".7"/>
+                                <circle r="2.5" fill="#3b82f6" opacity=".5"/>
+                            </g>
+                            <g transform="translate(297,258)">
+                                <circle r="10" fill="rgba(15,15,30,.95)" stroke="#3b82f6" stroke-width="1.4" opacity=".8"/>
+                                <circle r="4" fill="#3b82f6" opacity=".6"/>
+                            </g>
+                            <g transform="translate(103,258)">
+                                <circle r="7" fill="rgba(15,15,30,.95)" stroke="#3b82f6" stroke-width="1.1" opacity=".72"/>
+                                <circle r="3" fill="#3b82f6" opacity=".55"/>
+                            </g>
+                        </g>
+
+                        <!-- ORBIT 3 — inner — 2 data packets (losowe wielkości) -->
+                        <g class="o3">
+                            <g transform="translate(200,118)">
+                                <rect x="-8" y="-5" width="16" height="10" rx="1" fill="rgba(15,15,30,.95)" stroke="#3b82f6" stroke-width=".7" opacity=".8"/>
+                                <line x1="-5" y1="-1" x2="5" y2="-1" stroke="#3b82f6" stroke-width=".4" opacity=".6"/>
+                                <line x1="-5" y1="2" x2="3" y2="2" stroke="#3b82f6" stroke-width=".4" opacity=".4"/>
+                            </g>
+                            <g transform="translate(200,282)">
+                                <rect x="-13" y="-8" width="26" height="16" rx="2" fill="rgba(15,15,30,.95)" stroke="#3b82f6" stroke-width=".9" opacity=".9"/>
+                                <line x1="-8" y1="-3" x2="8" y2="-3" stroke="#3b82f6" stroke-width=".6" opacity=".6"/>
+                                <line x1="-8" y1="2" x2="5" y2="2" stroke="#3b82f6" stroke-width=".6" opacity=".4"/>
+                            </g>
+                        </g>
+
+                        <!-- ORBIT 4 — diamond particles (losowe wielkości) -->
+                        <g class="o4">
+                            <polygon points="200,131 203,135 200,139 197,135" fill="#3b82f6" opacity=".35"/>
+                            <polygon points="268,200 274,208 268,216 262,208" fill="#3b82f6" opacity=".5"/>
+                            <polygon points="200,265 204,271 200,277 196,271" fill="#3b82f6" opacity=".3"/>
+                            <polygon points="132,200 137,206 132,212 127,206" fill="#3b82f6" opacity=".45"/>
+                        </g>
+
+                        <!-- CORE — center -->
+                        <circle cx="200" cy="200" r="78" fill="url(#coreG)" filter="url(#blur4)" opacity=".8"/>
+                        <circle cx="200" cy="200" r="70" fill="url(#coreG)"/>
+                        <circle cx="200" cy="200" r="69" fill="none" stroke="rgba(59,130,246,0.5)" stroke-width="1"/>
+
+                        <!-- pulsing core ring -->
+                        <circle cx="200" cy="200" r="66" fill="none" stroke="#3b82f6" stroke-width="0.8" opacity="0.35" stroke-dasharray="10 5">
+                            <animateTransform attributeName="transform" type="rotate" from="0 200 200" to="360 200 200" dur="8s" repeatCount="indefinite"/>
+                        </circle>
+
+                        <!-- core text: 0% -->
+                        <text x="200" y="206" text-anchor="middle" font-family="Archivo Black, sans-serif" font-size="42" fill="white" letter-spacing="-1">0%</text>
+                        <text x="200" y="224" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="6" fill="#3b82f6" opacity=".8" letter-spacing="2.5">RYZYKO WYCIEKU</text>
+
+                        <!-- connection lines from core to orbits -->
+                        <line x1="200" y1="142" x2="200" y2="132" stroke="#3b82f6" stroke-width=".5" opacity=".25"/>
+                        <line x1="200" y1="258" x2="200" y2="268" stroke="#3b82f6" stroke-width=".5" opacity=".25"/>
+                        <line x1="142" y1="200" x2="132" y2="200" stroke="#3b82f6" stroke-width=".5" opacity=".25"/>
+                        <line x1="258" y1="200" x2="268" y2="200" stroke="#3b82f6" stroke-width=".5" opacity=".25"/>
+                    </svg>
+                    <!-- Glow -->
+                    <div class="absolute inset-0 rounded-full bg-citadel-navy/5 blur-3xl"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- O FIRMIE + ZESPÓŁ -->
+<section id="o-nas" class="relative py-24 md:py-32 circuit-dots">
+    <div class="max-w-screen-2xl 3xl:max-w-[1800px] mx-auto px-4 md:px-8 xl:px-12">
+        <div class="max-w-3xl mb-16 fade-in-up">
+            <span class="font-mono text-[10px] tracking-[0.4em] text-citadel-blue bg-citadel-navy/20 px-3 py-1.5 rounded inline-block mb-4">O_NAS</span>
+            <h2 class="font-heading text-3xl md:text-5xl uppercase text-white mb-6">O nas</h2>
+            <p class="text-citadel-muted leading-relaxed mb-4">Urzednik.ai to system AI wspierający pracę instytucji z dokumentami i wiedzą organizacyjną. System działa lokalnie w infrastrukturze instytucji (on-premise), dzięki czemu dane i dokumenty pozostają pod pełną kontrolą organizacji.</p>
+            <p class="text-citadel-muted leading-relaxed">Urzednik.ai jest rozwijany w Polsce przez krakowski zespół Netigen AI — firmę technologiczną z wieloletnim doświadczeniem w tworzeniu oprogramowania i systemów cyfrowych.</p>
+        </div>
+        <!-- Team grid -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-5 mb-20">
+            <!-- Michał Kluzowicz -->
+            <div class="team-card group fade-in-up">
+                <div class="relative aspect-[4/5] rounded-lg overflow-hidden mb-4">
+                    <img src="michal-kluzowicz.jpeg"
+                         alt="Michał Kluzowicz" class="team-img w-full h-full object-cover object-top">
+                    <div class="absolute inset-0 bg-gradient-to-t from-citadel-bg via-transparent to-transparent"></div>
+                    <div class="team-badge absolute top-3 right-3 bg-green-500/90 text-white font-mono text-[9px] tracking-wider px-2 py-0.5 rounded-full flex items-center gap-1">
+                        <span class="w-1.5 h-1.5 rounded-full bg-white"></span> ONLINE
+                    </div>
+                </div>
+                <p class="font-heading text-sm uppercase text-white">Michał Kluzowicz</p>
+                <p class="font-mono text-[10px] tracking-widest text-citadel-chrome mt-1">FOUNDER / CEO</p>
+            </div>
+            <!-- Michał Bogucki -->
+            <div class="team-card group fade-in-up">
+                <div class="relative aspect-[4/5] rounded-lg overflow-hidden mb-4">
+                    <img src="michal-bogucki.jpeg"
+                         alt="Michał Bogucki" class="team-img w-full h-full object-cover object-top">
+                    <div class="absolute inset-0 bg-gradient-to-t from-citadel-bg via-transparent to-transparent"></div>
+                    <div class="team-badge absolute top-3 right-3 bg-green-500/90 text-white font-mono text-[9px] tracking-wider px-2 py-0.5 rounded-full flex items-center gap-1">
+                        <span class="w-1.5 h-1.5 rounded-full bg-white"></span> ONLINE
+                    </div>
+                </div>
+                <p class="font-heading text-sm uppercase text-white">Michał Bogucki</p>
+                <p class="font-mono text-[10px] tracking-widest text-citadel-chrome mt-1">FOUNDER / LEAD AI ENGINEER</p>
+            </div>
+            <!-- Jerzy Kluzowicz -->
+            <div class="team-card group fade-in-up">
+                <div class="relative aspect-[4/5] rounded-lg overflow-hidden mb-4">
+                    <img src="jerzy-kluzowicz.jpeg"
+                         alt="Jerzy Kluzowicz" class="team-img w-full h-full object-cover object-top">
+                    <div class="absolute inset-0 bg-gradient-to-t from-citadel-bg via-transparent to-transparent"></div>
+                    <div class="team-badge absolute top-3 right-3 bg-green-500/90 text-white font-mono text-[9px] tracking-wider px-2 py-0.5 rounded-full flex items-center gap-1">
+                        <span class="w-1.5 h-1.5 rounded-full bg-white"></span> ONLINE
+                    </div>
+                </div>
+                <p class="font-heading text-sm uppercase text-white">Jerzy Kluzowicz</p>
+                <p class="font-mono text-[10px] tracking-widest text-citadel-chrome mt-1">FOUNDER / PRESIDENT NETIGEN AI</p>
+            </div>
+            <!-- Katarzyna Malara -->
+            <div class="team-card group fade-in-up">
+                <div class="relative aspect-[4/5] rounded-lg overflow-hidden mb-4">
+                    <img src="katarzyna-malara.jpeg"
+                         alt="Katarzyna Malara" class="team-img w-full h-full object-cover object-top">
+                    <div class="absolute inset-0 bg-gradient-to-t from-citadel-bg via-transparent to-transparent"></div>
+                    <div class="team-badge absolute top-3 right-3 bg-green-500/90 text-white font-mono text-[9px] tracking-wider px-2 py-0.5 rounded-full flex items-center gap-1">
+                        <span class="w-1.5 h-1.5 rounded-full bg-white"></span> ONLINE
+                    </div>
+                </div>
+                <p class="font-heading text-sm uppercase text-white">Katarzyna Malara</p>
+                <p class="font-mono text-[10px] tracking-widest text-citadel-chrome mt-1">INSTITUTIONAL KNOWLEDGE & AI TRAINING</p>
+            </div>
+        </div>
+
+        <!-- CTA BANNER -->
+        <div id="kontakt" class="glitch-border rounded-xl bg-gradient-to-br from-citadel-navy/40 via-citadel-panel to-citadel-card p-8 md:p-14 fade-in-up">
+            <h3 class="font-heading text-2xl md:text-3xl uppercase text-white mb-4">Zobacz, jak Urzednik.ai może działać w Twojej instytucji.</h3>
+            <p class="text-citadel-muted mb-6">Podczas krótkiej prezentacji pokażemy m.in.:</p>
+            <ul class="space-y-3 mb-8">
+                <li class="flex items-start gap-3 text-citadel-text text-sm">
+                    <span class="material-symbols-outlined text-citadel-blue text-lg mt-0.5 shrink-0">check_circle</span>
+                    jak system odpowiada na pytania na podstawie dokumentów instytucji
+                </li>
+                <li class="flex items-start gap-3 text-citadel-text text-sm">
+                    <span class="material-symbols-outlined text-citadel-blue text-lg mt-0.5 shrink-0">check_circle</span>
+                    jak wskazuje źródła odpowiedzi w dokumentach (system P1–P4)
+                </li>
+                <li class="flex items-start gap-3 text-citadel-text text-sm">
+                    <span class="material-symbols-outlined text-citadel-blue text-lg mt-0.5 shrink-0">check_circle</span>
+                    jak wygląda praca nad dokumentem z historią zmian
+                </li>
+                <li class="flex items-start gap-3 text-citadel-text text-sm">
+                    <span class="material-symbols-outlined text-citadel-blue text-lg mt-0.5 shrink-0">check_circle</span>
+                    jak można wdrożyć system w instytucji
+                </li>
+            </ul>
+            <p class="text-citadel-chrome text-sm mb-8 font-mono">Prezentacja trwa ok. 20 minut.</p>
+            <a href="mailto:biuro@urzednik.ai?subject=Prezentacja%20Urzednik.ai" class="cta-primary inline-flex items-center gap-3 px-10 py-4 rounded text-white font-heading text-sm tracking-widest uppercase">
+                <span class="flex items-center gap-3"><span class="material-symbols-outlined text-xl">event</span> UMÓW PREZENTACJĘ</span>
+            </a>
+        </div>
+    </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="border-t border-citadel-navy/20 bg-citadel-panel/50 pt-16 pb-8">
+    <div class="max-w-screen-2xl 3xl:max-w-[1800px] mx-auto px-4 md:px-8 xl:px-12">
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-10 mb-12">
+            <!-- Col 1: Logo + company -->
+            <div class="col-span-2 md:col-span-1">
+                <div class="flex items-center gap-2 mb-4">
+                    <span class="material-symbols-outlined text-citadel-blue text-2xl">security</span>
+                    <span class="font-heading text-sm tracking-wider text-white">URZEDNIK.AI</span>
+                </div>
+                <div class="font-mono text-[10px] tracking-wider text-citadel-chrome leading-relaxed space-y-0.5">
+                    <p>NETIGEN AI SP. Z O.O.</p>
+                    <p>UL. LUDWIKA SOLSKIEGO 1/11</p>
+                    <p>31-216 KRAKÓW</p>
+                </div>
+            </div>
+            <!-- Col 2: Informacje -->
+            <div>
+                <p class="font-mono text-[10px] tracking-[0.3em] text-citadel-chrome mb-4">INFORMACJE</p>
+                <ul class="space-y-2.5">
+                    <li><a href="#system" class="text-sm text-citadel-muted hover:text-citadel-blue transition-colors">System</a></li>
+                    <li><a href="#zastosowania" class="text-sm text-citadel-muted hover:text-citadel-blue transition-colors">Zastosowania</a></li>
+                    <li><a href="#dlaczego-onpremise" class="text-sm text-citadel-muted hover:text-citadel-blue transition-colors">Dlaczego on-premise</a></li>
+                    <li><a href="#bezpieczenstwo" class="text-sm text-citadel-muted hover:text-citadel-blue transition-colors">Bezpieczeństwo</a></li>
+                </ul>
+            </div>
+            <!-- Col 3: Firma -->
+            <div>
+                <p class="font-mono text-[10px] tracking-[0.3em] text-citadel-chrome mb-4">FIRMA</p>
+                <ul class="space-y-2.5">
+                    <li><a href="#o-nas" class="text-sm text-citadel-muted hover:text-citadel-blue transition-colors">O nas</a></li>
+                    <li><a href="#kontakt" class="text-sm text-citadel-muted hover:text-citadel-blue transition-colors">Kontakt</a></li>
+                </ul>
+            </div>
+            <!-- Col 4: Kontakt -->
+            <div>
+                <p class="font-mono text-[10px] tracking-[0.3em] text-citadel-chrome mb-4">KONTAKT</p>
+                <ul class="space-y-2.5">
+                    <li><a href="mailto:biuro@urzednik.ai" class="text-sm text-citadel-muted hover:text-citadel-blue transition-colors">biuro@urzednik.ai</a></li>
+                    <li><a href="tel:+48607376301" class="text-sm text-citadel-muted hover:text-citadel-blue transition-colors">+48 607 376 301</a></li>
+                </ul>
+            </div>
+        </div>
+        <!-- Bottom bar -->
+        <div class="border-t border-citadel-navy/15 pt-6 flex flex-col md:flex-row justify-between items-center gap-3">
+            <p class="font-mono text-[10px] tracking-wider text-citadel-chrome/50">&copy; 2025 NETIGEN AI SP. Z O.O.</p>
+            <div class="flex gap-6">
+                <a href="#" class="font-mono text-[10px] tracking-wider text-citadel-chrome/50 hover:text-citadel-blue transition-colors">POLITYKA PRYWATNOŚCI</a>
+                <a href="#" class="font-mono text-[10px] tracking-wider text-citadel-chrome/50 hover:text-citadel-blue transition-colors">REGULAMIN</a>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<script>
+    // Navbar scroll behavior
+    const navbar = document.getElementById('navbar');
+    const contactBar = document.querySelector('body > div:first-child');
+    let lastScroll = 0;
+
+    window.addEventListener('scroll', () => {
+        const currentScroll = window.pageYOffset;
+        if (currentScroll > 40) {
+            navbar.style.top = '0';
+            navbar.style.background = 'rgba(10,10,15,0.9)';
+            navbar.style.backdropFilter = 'blur(20px)';
+            navbar.style.borderBottom = '1px solid rgba(30,58,138,0.15)';
+            contactBar.style.transform = 'translateY(-100%)';
+            contactBar.style.transition = 'transform 0.3s';
+        } else {
+            navbar.style.top = '33px';
+            navbar.style.background = 'transparent';
+            navbar.style.backdropFilter = 'none';
+            navbar.style.borderBottom = 'none';
+            contactBar.style.transform = 'translateY(0)';
+        }
+        lastScroll = currentScroll;
+    });
+
+    // Hamburger menu
+    const hamburger = document.getElementById('hamburger');
+    const mobileMenu = document.getElementById('mobile-menu');
+    hamburger.addEventListener('click', () => {
+        hamburger.classList.toggle('active');
+        mobileMenu.classList.toggle('hidden');
+    });
+    mobileMenu.querySelectorAll('a').forEach(link => {
+        link.addEventListener('click', () => {
+            hamburger.classList.remove('active');
+            mobileMenu.classList.add('hidden');
+        });
+    });
+
+    // Intersection Observer for fade-in
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach((entry, index) => {
+            if (entry.isIntersecting) {
+                setTimeout(() => {
+                    entry.target.classList.add('visible');
+                }, index * 80);
+                observer.unobserve(entry.target);
+            }
+        });
+    }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+
+    document.querySelectorAll('.fade-in-up').forEach(el => observer.observe(el));
+
+    // Anti-FOUC: pokaż stronę po załadowaniu Tailwind i fontów
+    document.body.classList.add('loaded');
+</script>
+</body>
+</html>
